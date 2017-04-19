@@ -1,0 +1,11 @@
+Column #1 = Wavelength [microns]
+Column #2 = Log10( Flux [erg s^-1 cm^-2 Angstroms^-1] )
+Column #3 = Error on Column 2
+
+Col #1	Col #2	Col #3
+3.368	-18.435	0.087
+4.618	-17.042	0.087
+12.082	-15.728	0.087
+22.194	-16.307	0.087
+3.6	-18.063	0.043
+4.5	-17.173	0.043
