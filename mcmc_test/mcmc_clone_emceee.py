@@ -185,8 +185,12 @@ plt.tick_params(
     bottom= 'off',       # ticks along the bottom edge are off
     top= 'off')          # tick along the top edhe are off
 
-plt.errorbar(x, y, yerr=yerr, fmt=".r",color="#C80013")
-plt.plot(plotting_wavelength, model(plotting_wavelength,samples[0][0],samples[0][1]), "--",color="#0A40AB", lw=1)
+data_1 = plt.errorbar(x, y, yerr=yerr, fmt=".r",color="#C80013")
+line_1, = plt.plot(plotting_wavelength, model(plotting_wavelength,samples[0][0],samples[0][1]), "--",color="#0A40AB", lw=1)
+plt.ylabel('log10(fulx[erg s^-1 cm^-1 A^-1] )')
+plt.xlabel("wavelength [um]")
+plt.title('Initial Guess Result',color= "#302B2B", fontweight="bold")
+plt.legend([data_1, line_1],['Available data','Curve with temperature from the initial guess'])
 plt.savefig(dir_path+"\Initial Guess Result.png")
 plt.close()
 
@@ -210,8 +214,12 @@ plt.tick_params(
     bottom= 'off',       # ticks along the bottom edge are off
     top= 'off')          # tick along the top edhe are off
 
-plt.errorbar(x, y, yerr=yerr,fmt='.',color="#C80013",ms="6")
-plt.plot(plotting_wavelength, model(plotting_wavelength,T_mcmc[0],logfac_mcmc[0]), "--",color="#0A40AB", lw=1)
+data_2 = plt.errorbar(x, y, yerr=yerr,fmt='.',color="#C80013",ms="6")
+line_2, = plt.plot(plotting_wavelength, model(plotting_wavelength,T_mcmc[0],logfac_mcmc[0]), "--",color="#0A40AB", lw=1)
+plt.ylabel('log10(fulx[erg s^-1 cm^-1 A^-1] )')
+plt.xlabel("wavelength [um]")
+plt.title('MCMC Result',color= "#302B2B", fontweight="bold")
+plt.legend([data_2, line_2],['Available data','Curve with temperature from MCMC'])
 plt.savefig(dir_path+"\MCMC results.png")
 plt.close()
 
