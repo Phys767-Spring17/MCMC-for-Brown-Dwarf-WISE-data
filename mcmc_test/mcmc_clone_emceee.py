@@ -1,7 +1,6 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import animation
 from astropy.io import ascii
 import scipy.constants as con
 import emcee
@@ -30,10 +29,8 @@ logfacmax = 0.0 #log factor maximum
 #theatshape is 2 X 2 array
 thetashape=np.array([[Teffmin,Teffmax],[logfacmin,logfacmax]])
 
-
 #Conversion Matrix required for the MHSampler to run
 cov = np.cov(x,y)
-
 
 #Model for the log of the Spectral Radiance
 def model(x, T,logfactor):
@@ -118,7 +115,7 @@ sampler = emcee.MHSampler(cov, dim = ndim, lnprobfn = lnprob, args=(x, y, yerr))
 
 
 # Clear and run the production chain.
-number_of_samples = 10000
+number_of_samples = 1000
 print("Running MCMC...")
 sampler.run_mcmc(pos[0], number_of_samples, rstate0=np.random.get_state())
 print("Done.")
@@ -169,18 +166,75 @@ os.makedirs(dir_path, exist_ok=True)
 plotting_wavelength = np.arange(x[0], 25.0, 0.01)
 
 # Plot the initial guess results.
-plt.errorbar(x, y, yerr=yerr, fmt=".r")
-plt.plot(plotting_wavelength, model(plotting_wavelength,samples[0][0],samples[0][1]), "--k", lw=1)
+fig, ax = plt.subplots()
+
+ax.spines['top'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.tick_params(colors='#302B2B',top="off",bottom="off")
+#ax.tick_params(colors='#302B2B')
+ax.yaxis.label.set_color('#302B2B')
+ax.xaxis.label.set_color('#302B2B')
+ax.grid(color='959595', linestyle='-', linewidth=.3)
+plt.tick_params(
+    axis='both',         # changes apply to the x-axis
+    which='both',        # both major and minor ticks are affected
+    left='off',          # ticks along the bottom edge are off
+    right='off',         # ticks along the top edge are off
+    bottom= 'off',       # ticks along the bottom edge are off
+    top= 'off')          # tick along the top edhe are off
+
+plt.errorbar(x, y, yerr=yerr, fmt=".r",color="#C80013")
+plt.plot(plotting_wavelength, model(plotting_wavelength,samples[0][0],samples[0][1]), "--",color="#0A40AB", lw=1)
 plt.savefig(dir_path+"\Initial Guess Result.png")
 plt.close()
 
 # Plot the MCMC results.
-plt.errorbar(x, y, yerr=yerr,fmt='.r',ms="6")
-plt.plot(plotting_wavelength, model(plotting_wavelength,T_mcmc[0],logfac_mcmc[0]), "--k", lw=1)
+fig, ax = plt.subplots()
+
+ax.spines['top'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.tick_params(colors='#302B2B',top="off",bottom="off")
+#ax.tick_params(colors='#302B2B')
+ax.yaxis.label.set_color('#302B2B')
+ax.xaxis.label.set_color('#302B2B')
+ax.grid(color='959595', linestyle='-', linewidth=.3)
+plt.tick_params(
+    axis='both',         # changes apply to the x-axis
+    which='both',        # both major and minor ticks are affected
+    left='off',          # ticks along the bottom edge are off
+    right='off',         # ticks along the top edge are off
+    bottom= 'off',       # ticks along the bottom edge are off
+    top= 'off')          # tick along the top edhe are off
+
+plt.errorbar(x, y, yerr=yerr,fmt='.',color="#C80013",ms="6")
+plt.plot(plotting_wavelength, model(plotting_wavelength,T_mcmc[0],logfac_mcmc[0]), "--",color="#0A40AB", lw=1)
 plt.savefig(dir_path+"\MCMC results.png")
 plt.close()
 
 # Plot
+fig, ax = plt.subplots()
+
+ax.spines['top'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.tick_params(colors='#302B2B',top="off",bottom="off")
+#ax.tick_params(colors='#302B2B')
+ax.yaxis.label.set_color('#302B2B')
+ax.xaxis.label.set_color('#302B2B')
+ax.grid(color='959595', linestyle='-', linewidth=.3)
+plt.tick_params(
+    axis='both',         # changes apply to the x-axis
+    which='both',        # both major and minor ticks are affected
+    left='off',          # ticks along the bottom edge are off
+    right='off',         # ticks along the top edge are off
+    bottom= 'off',       # ticks along the bottom edge are off
+    top= 'off')          # tick along the top edhe are off
+
 jlist=np.arange(len(samples))
 plt.scatter(samples[:,0], samples[:,1], c=jlist, cmap='coolwarm')
 plt.xlabel('Temperature [K]')
@@ -188,41 +242,52 @@ plt.ylabel('log10(factor)')
 plt.savefig(dir_path+"\\1B Temp vs logfactor.png")
 plt.close()
 
-
-fig = plt.figure()
-ax = plt.axes(xlim=(0, 2), ylim=(-2, 2))
-line, = ax.plot([], [], lw=2)
-
-
-# animation function.  This is called sequentially
-def animate(i):
-    x = samples[:i,0]
-    y = samples[:i,1]
-    line.set_data(x, y)
-    return line,
-
-# call the animator.  blit=True means only re-draw the parts that have changed.
-anim = animation.FuncAnimation(fig, animate, frames=200, interval=20, blit=True)
-
-# save the animation as an mp4.  This requires ffmpeg or mencoder to be
-# installed.  The extra_args ensure that the x264 codec is used, so that
-# the video can be embedded in html5.  You may need to adjust this for
-# your system: for more information, see
-# http://matplotlib.sourceforge.net/api/animation_api.html
-#anim.save('basic_animation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
-
-plt.show()
-plt.close('all')
-
 np.max(samples[:,1])
 
+fig, ax = plt.subplots()
 
-plt.plot(samples[:,1])
+ax.spines['top'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.tick_params(colors='#302B2B',top="off",bottom="off")
+#ax.tick_params(colors='#302B2B')
+ax.yaxis.label.set_color('#302B2B')
+ax.xaxis.label.set_color('#302B2B')
+ax.grid(color='959595', linestyle='-', linewidth=.3)
+plt.tick_params(
+    axis='both',         # changes apply to the x-axis
+    which='both',        # both major and minor ticks are affected
+    left='off',          # ticks along the bottom edge are off
+    right='off',         # ticks along the top edge are off
+    bottom= 'off',       # ticks along the bottom edge are off
+    top= 'off')          # tick along the top edhe are off
+
+plt.plot(samples[:,1],color="#3513B6", lw=1)
 plt.xlabel('Chain number')
 plt.ylabel('loglike')
 plt.savefig(dir_path+"\\2B Chain number vs loglike.png")
 #plt.show()
 plt.close()
+
+fig, ax = plt.subplots()
+
+ax.spines['top'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.tick_params(colors='#302B2B',top="off",bottom="off")
+#ax.tick_params(colors='#302B2B')
+ax.yaxis.label.set_color('#302B2B')
+ax.xaxis.label.set_color('#302B2B')
+ax.grid(color='959595', linestyle='-', linewidth=.3)
+plt.tick_params(
+    axis='both',         # changes apply to the x-axis
+    which='both',        # both major and minor ticks are affected
+    left='off',          # ticks along the bottom edge are off
+    right='off',         # ticks along the top edge are off
+    bottom= 'off',       # ticks along the bottom edge are off
+    top= 'off')          # tick along the top edhe are off
 
 jlist=np.arange(len(samples))
 plt.scatter(samples[burnj:,0], samples[burnj:,1], c=jlist[burnj:], cmap='coolwarm',alpha=0.5)
@@ -234,8 +299,25 @@ plt.close()
 
 ascii.write(samples[burnj:,:], "chains.dat")
 
+fig, ax = plt.subplots()
 
-plt.plot(samples[burnj:,0])
+ax.spines['top'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.tick_params(colors='#302B2B',top="off",bottom="off")
+#ax.tick_params(colors='#302B2B')
+ax.yaxis.label.set_color('#302B2B')
+ax.xaxis.label.set_color('#302B2B')
+ax.grid(color='959595', linestyle='-', linewidth=.3)
+plt.tick_params(
+    axis='both',         # changes apply to the x-axis
+    which='both',        # both major and minor ticks are affected
+    left='off',          # ticks along the bottom edge are off
+    right='off',         # ticks along the top edge are off
+    bottom= 'off',       # ticks along the bottom edge are off
+    top= 'off')          # tick along the top edhe are off
+plt.plot(samples[burnj:,0], color="#3513B6", lw=1)
 plt.title('Check mixing')
 plt.xlabel('Chain number')
 plt.ylabel('Temperature [K]')
@@ -243,8 +325,25 @@ plt.savefig(dir_path+"\\4B Check mixing, Temperature A.png")
 #plt.show()
 plt.close()
 
+fig, ax = plt.subplots()
 
-plt.plot(samples[burnj:,1])
+ax.spines['top'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.tick_params(colors='#302B2B',top="off",bottom="off")
+#ax.tick_params(colors='#302B2B')
+ax.yaxis.label.set_color('#302B2B')
+ax.xaxis.label.set_color('#302B2B')
+ax.grid(color='959595', linestyle='-', linewidth=.3)
+plt.tick_params(
+    axis='both',         # changes apply to the x-axis
+    which='both',        # both major and minor ticks are affected
+    left='off',          # ticks along the bottom edge are off
+    right='off',         # ticks along the top edge are off
+    bottom= 'off',       # ticks along the bottom edge are off
+    top= 'off')          # tick along the top edhe are off
+plt.plot(samples[burnj:,1], color="#3513B6", lw=1)
 plt.title('Check mixing')
 plt.xlabel('Chain number')
 plt.ylabel('log10(factor)')
@@ -252,12 +351,29 @@ plt.savefig(dir_path+"\\5B Check mixing, log10(factor) A.png")
 #plt.show()
 plt.close()
 
+fig, ax = plt.subplots()
 
+ax.spines['top'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.tick_params(colors='#302B2B',top="off",bottom="off")
+#ax.tick_params(colors='#302B2B')
+ax.yaxis.label.set_color('#302B2B')
+ax.xaxis.label.set_color('#302B2B')
+ax.grid(color='959595', linestyle='-', linewidth=.3)
+plt.tick_params(
+    axis='both',         # changes apply to the x-axis
+    which='both',        # both major and minor ticks are affected
+    left='off',          # ticks along the bottom edge are off
+    right='off',         # ticks along the top edge are off
+    bottom= 'off',       # ticks along the bottom edge are off
+    top= 'off')          # tick along the top edhe are off
 temp=np.empty([len(samples)-burnj])
 temp[0]=samples[burnj,0]
 for i in range(burnj+1,len(samples)):
     temp[i-burnj]=np.mean(samples[burnj:i,0])
-plt.plot(temp)
+plt.plot(temp, color="#3513B6", lw=1)
 plt.title('Check mixing')
 plt.xlabel('Chain number')
 plt.ylabel('Temperature [K]')
@@ -265,16 +381,60 @@ plt.savefig(dir_path+"\\6B Check mixing, Temperature B.png")
 #plt.show()
 plt.close()
 
+fig, ax = plt.subplots()
+
+ax.spines['top'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.tick_params(colors='#302B2B',top="off",bottom="off")
+#ax.tick_params(colors='#302B2B')
+ax.yaxis.label.set_color('#302B2B')
+ax.xaxis.label.set_color('#302B2B')
+ax.grid(color='959595', linestyle='-', linewidth=.3)
+plt.tick_params(
+    axis='both',         # changes apply to the x-axis
+    which='both',        # both major and minor ticks are affected
+    left='off',          # ticks along the bottom edge are off
+    right='off',         # ticks along the top edge are off
+    bottom= 'off',       # ticks along the bottom edge are off
+    top= 'off')          # tick along the top edhe are off
 temp=np.empty([len(samples)-burnj])
 temp[0]=samples[burnj,1]
 for i in range(burnj+1,len(samples)):
     temp[i-burnj]=np.mean(samples[burnj:i,1])
-plt.plot(temp)
+plt.plot(temp, color="#3513B6", lw=1)
 plt.title('Check mixing')
 plt.xlabel('Chain number')
 plt.ylabel('log10(factor)')
 plt.savefig(dir_path+"\\7B Check mixing, log10(factor) B.png")
 #plt.show()
+plt.close()
+
+fig, ax = plt.subplots()
+
+ax.spines['top'].set_visible(False)
+ax.spines['bottom'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['left'].set_visible(False)
+ax.tick_params(colors='#302B2B',top="off",bottom="off")
+#ax.tick_params(colors='#302B2B')
+ax.yaxis.label.set_color('#302B2B')
+ax.xaxis.label.set_color('#302B2B')
+ax.grid(color='959595', linestyle='-', linewidth=.3)
+plt.tick_params(
+    axis='both',         # changes apply to the x-axis
+    which='both',        # both major and minor ticks are affected
+    left='off',          # ticks along the bottom edge are off
+    right='off',         # ticks along the top edge are off
+    bottom= 'off',       # ticks along the bottom edge are off
+    top= 'off')          # tick along the top edhe are off
+
+jlist=np.arange(len(samples))
+plt.scatter(samples[burnj:,0], samples[burnj:,1], c=jlist[burnj:], cmap='coolwarm',alpha=0.5)
+plt.xlabel('Temperature [K]')
+plt.ylabel('log10(factor)')
+plt.savefig(dir_path+"\\8B Temperatur vs log10(factor) with burn point.png")
 plt.close()
 
 #Record the latest MCMC calculation into .dat file
