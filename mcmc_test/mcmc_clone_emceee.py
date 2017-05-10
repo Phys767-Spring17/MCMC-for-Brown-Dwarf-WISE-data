@@ -247,6 +247,7 @@ jlist=np.arange(len(samples))
 plt.scatter(samples[:,0], samples[:,1], c=jlist, cmap='coolwarm')
 plt.xlabel('Temperature [K]')
 plt.ylabel('log10(factor)')
+plt.title('Temperature vs log10(factor)',color= "#302B2B", fontweight="bold")
 plt.savefig(dir_path+"\\1B Temp vs logfactor.png")
 plt.close()
 
@@ -274,6 +275,7 @@ plt.tick_params(
 plt.plot(samples[:,1],color="#3513B6", lw=1)
 plt.xlabel('Chain number')
 plt.ylabel('loglike')
+plt.title('Chain number vs loglike',color= "#302B2B", fontweight="bold")
 plt.savefig(dir_path+"\\2B Chain number vs loglike.png")
 #plt.show()
 plt.close()
@@ -301,7 +303,8 @@ jlist=np.arange(len(samples))
 plt.scatter(samples[burnj:,0], samples[burnj:,1], c=jlist[burnj:], cmap='coolwarm',alpha=0.5)
 plt.xlabel('Temperature [K]')
 plt.ylabel('log10(factor)')
-plt.savefig(dir_path+"\\3B Temperatur vs log10(factor) B.png")
+plt.title('Temperature vs log10(factor)',color= "#302B2B", fontweight="bold")
+plt.savefig(dir_path+"\\3B Temperature vs log10(factor).png")
 #plt.show()
 plt.close()
 
@@ -326,10 +329,10 @@ plt.tick_params(
     bottom= 'off',       # ticks along the bottom edge are off
     top= 'off')          # tick along the top edhe are off
 plt.plot(samples[burnj:,0], color="#3513B6", lw=1)
-plt.title('Check mixing')
 plt.xlabel('Chain number')
 plt.ylabel('Temperature [K]')
-plt.savefig(dir_path+"\\4B Check mixing, Temperature A.png")
+plt.title('Check mixing',color= "#302B2B", fontweight="bold")
+plt.savefig(dir_path+"\\4B Check mixing, Temperature.png")
 #plt.show()
 plt.close()
 
@@ -352,10 +355,10 @@ plt.tick_params(
     bottom= 'off',       # ticks along the bottom edge are off
     top= 'off')          # tick along the top edhe are off
 plt.plot(samples[burnj:,1], color="#3513B6", lw=1)
-plt.title('Check mixing')
 plt.xlabel('Chain number')
 plt.ylabel('log10(factor)')
-plt.savefig(dir_path+"\\5B Check mixing, log10(factor) A.png")
+plt.title('Check mixing',color= "#302B2B", fontweight="bold")
+plt.savefig(dir_path+"\\5B Check mixing, log10(factor).png")
 #plt.show()
 plt.close()
 
@@ -382,10 +385,10 @@ temp[0]=samples[burnj,0]
 for i in range(burnj+1,len(samples)):
     temp[i-burnj]=np.mean(samples[burnj:i,0])
 plt.plot(temp, color="#3513B6", lw=1)
-plt.title('Check mixing')
 plt.xlabel('Chain number')
 plt.ylabel('Temperature [K]')
-plt.savefig(dir_path+"\\6B Check mixing, Temperature B.png")
+plt.title('Check mixing',color= "#302B2B", fontweight="bold")
+plt.savefig(dir_path+"\\6B Check mixing, Temperature.png")
 #plt.show()
 plt.close()
 
@@ -412,10 +415,10 @@ temp[0]=samples[burnj,1]
 for i in range(burnj+1,len(samples)):
     temp[i-burnj]=np.mean(samples[burnj:i,1])
 plt.plot(temp, color="#3513B6", lw=1)
-plt.title('Check mixing')
 plt.xlabel('Chain number')
 plt.ylabel('log10(factor)')
-plt.savefig(dir_path+"\\7B Check mixing, log10(factor) B.png")
+plt.title('Check mixing',color= "#302B2B", fontweight="bold")
+plt.savefig(dir_path+"\\7B Check mixing, log10(factor).png")
 #plt.show()
 plt.close()
 
@@ -442,6 +445,7 @@ jlist=np.arange(len(samples))
 plt.scatter(samples[burnj:,0], samples[burnj:,1], c=jlist[burnj:], cmap='coolwarm',alpha=0.5)
 plt.xlabel('Temperature [K]')
 plt.ylabel('log10(factor)')
+plt.title('Temperatur vs log10(factor) with burn point',color= "#302B2B", fontweight="bold")
 plt.savefig(dir_path+"\\8B Temperatur vs log10(factor) with burn point.png")
 plt.close()
 
