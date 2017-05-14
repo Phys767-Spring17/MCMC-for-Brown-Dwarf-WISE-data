@@ -57,17 +57,26 @@ pl.plot(xl, m_ls*xl+b_ls, "--k")
 pl.savefig("line-least-squares.png")
 
 # Define the probability function as likelihood * prior.
+# log of prior distribution
+# m -> slope
+# b -> y-axis intercept
+# lnf -> log of the fractional amount that the likelyhood function is understimated by
+
 def lnprior(theta):
     m, b, lnf = theta
     if -5.0 < m < 0.5 and 0.0 < b < 10.0 and -10.0 < lnf < 1.0:
         return 0.0
     return -np.inf
 
+# log of the likelyhood function is a Guassian understimated by fractional amount
+
 def lnlike(theta, x, y, yerr):
     m, b, lnf = theta
     model = m * x + b
     inv_sigma2 = 1.0/(yerr**2 + model**2*np.exp(2*lnf))
     return -0.5*(np.sum((y-model)**2*inv_sigma2 - np.log(inv_sigma2)))
+
+# using the log of prior and lilyhood function to determine the log of the probability
 
 def lnprob(theta, x, y, yerr):
     lp = lnprior(theta)

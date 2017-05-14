@@ -1,3 +1,5 @@
+Data collected of the WISE 0855-071 brown dwarf.
+
 Column #1 = Wavelength [microns]
 Column #2 = Log10( Flux [erg s^-1 cm^-2 Angstroms^-1] )
 Column #3 = Error on Column 2

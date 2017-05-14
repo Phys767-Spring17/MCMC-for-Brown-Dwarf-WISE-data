@@ -12,22 +12,11 @@ from astropy.io import ascii
 
 np.seterr(divide='ignore', invalid='ignore')
 
-h = 6.626070040*(10**(-34))  #J*s
-c = 299792458 #m/s
-k = 1.38064852*(10**(-23))  #m^2*kg*s^-2*K^-1
+h = 6.626e-34 # J*s
+c = 3.0e+8    # m/s
+k = 1.38e-23  # m^2*kg*s^-2*K^-1
 
-a = 2*h*(c**2)
-b = (h*c)/k
-
-def my_own_Planck(x,T):
-    #x is the wavelength
-    #returns spectral radiance per sr
-    return((a/x**5)*(1/((np.exp(b/(T*x))-1))))
-
-h = 6.626e-34
-c = 3.0e+8
-k = 1.38e-23
-
+# using the planck function to caculate the intensity of spectral density 
 def planck(wav, T):
     a = 2.0*h*c**2
     b = h*c/(wav*k*T)

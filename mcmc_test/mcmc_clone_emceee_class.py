@@ -10,7 +10,7 @@ import random
 import os
 
 # Get the data using the astropy ascii
-data = ascii.read("SED.dat", data_start=4)
+data = ascii.read("SED.dat", data_start=6)
 
 x = data[0][:]      # Wavelength column
 y = data[1][:]     # log10(flux)

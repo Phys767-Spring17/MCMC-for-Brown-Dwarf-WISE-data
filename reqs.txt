@@ -1,0 +1,9 @@
+visualization --> with modification, in the code review as well
+using github for discussion
+add into part of the repo visualizations
+readability of the code
+    doc strings
+    comments
+
+
+Due date: Friday May 19th

@@ -10,7 +10,7 @@ import random
 import os
 
 # Get the data using the astropy ascii
-data = ascii.read(os.path.dirname(os.path.realpath(__file__))+"\\SED.dat", data_start=4)
+data = ascii.read(os.path.dirname(os.path.realpath(__file__))+"\\SED.dat", data_start=6)
 
 x = data[0][:]      # Wavelength column
 y = data[1][:]     # log10(flux)
@@ -115,7 +115,7 @@ sampler = emcee.MHSampler(cov, dim = ndim, lnprobfn = lnprob, args=(x, y, yerr))
 
 
 # Clear and run the production chain.
-number_of_samples = 1000
+number_of_samples = 10000
 print("Running MCMC...")
 sampler.run_mcmc(pos[0], number_of_samples, rstate0=np.random.get_state())
 print("Done.")
@@ -157,6 +157,30 @@ print("""MCMC result with calculated burn point:
     T = {0[0]} +{0[1]} -{0[2]}
     Log Factor = {1[0]} +{1[1]} -{1[2]}
 """.format(T_mcmc, logfac_mcmc))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # ------------------------------------------------------------------------------
 dir_path = os.path.dirname(os.path.realpath(__file__)) + "\\emcee_model_graphs"
@@ -245,6 +269,7 @@ plt.scatter(samples[:,0], samples[:,1], c=jlist, cmap='coolwarm')
 plt.xlabel('Temperature [K]')
 plt.ylabel('log10(factor)')
 plt.title('Temperature vs log10(factor)',color= "#302B2B", fontweight="bold")
+plt.colorbar().ax.set_title("Chain Number")
 plt.savefig(dir_path+"\\1B Temperature vs logfactor.png")
 plt.close()
 
@@ -301,11 +326,12 @@ plt.scatter(samples[burnj:,0], samples[burnj:,1], c=jlist[burnj:], cmap='coolwar
 plt.xlabel('Temperature [K]')
 plt.ylabel('log10(factor)')
 plt.title('Temperature vs log10(factor)',color= "#302B2B", fontweight="bold")
+plt.colorbar().ax.set_title("Chain Number")
 plt.savefig(dir_path+"\\3B Temperature vs log10(factor).png")
 #plt.show()
 plt.close()
 
-ascii.write(samples[burnj:,:], "chains.dat")
+ascii.write(samples[burnj:,:], "chains.dat", overwrite= True)
 
 # check mixing of temperature values
 fig, ax = plt.subplots()
@@ -443,9 +469,10 @@ plt.scatter(samples[burnj:,0], samples[burnj:,1], c=jlist[burnj:], cmap='coolwar
 plt.xlabel('Temperature [K]')
 plt.ylabel('log10(factor)')
 plt.title('Check mixing',color= "#302B2B", fontweight="bold")
+plt.colorbar().ax.set_title("Chain Number")
 plt.savefig(dir_path+"\\8B Temperatur vs log10(factor) with burn point.png")
 plt.close()
 
 #Record the latest MCMC calculation into .dat file
 T_mcmc_array = np.array(T_mcmc)
-ascii.write(T_mcmc_array, "results.dat", names= ("Temperature", "+", "-"))
+ascii.write(T_mcmc_array, "results.dat", names= ("Temperature", "+", "-"), overwrite= True)
