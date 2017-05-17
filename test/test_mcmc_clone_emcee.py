@@ -1,4 +1,5 @@
 from mcmc_test.mcmc_clone_emceee import model
+from mccm_test.mcmc_clone_emceee import acceptfrac
 
 import pytest
 import numpy as np
@@ -30,3 +31,7 @@ def test_mcmc_clone_emceee_output():
 def test_mcmc_clone_emceee_output_number():
     path = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "\\mcmc_test\\emcee_model_graphs"
     assert len(os.listdir(path)) == 9
+
+def test_acceptance_fraction():
+    assert .15 <= acceptfrac <= .5
+    
