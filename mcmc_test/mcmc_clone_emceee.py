@@ -29,8 +29,6 @@ logfacmax = 0.0 #log factor maximum
 #theatshape is 2 X 2 array
 thetashape=np.array([[Teffmin,Teffmax],[logfacmin,logfacmax]])
 
-#Conversion Matrix required for the MHSampler to run
-cov = np.cov(x,y)
 
 #Model for the log of the Spectral Radiance
 def model(x, T,logfactor):
@@ -48,6 +46,7 @@ def model(x, T,logfactor):
         flux[i] = a/ ( (wav[i]**5) * (np.exp(b) - 1.0) )
         logflux[i] = logfactor + np.log10(flux[i])
     return logflux
+
 
 #log of likelyhood function
 def log_like(x,logf,errlogf,theta):
@@ -90,7 +89,6 @@ def log_prior(theta,thetashape):
 Teffinitial = np.exp( np.random.uniform(np.log(thetashape[0][0]),np.log(thetashape[0][1])) )
 logfacinitial=np.random.uniform(thetashape[1][0],thetashape[1][1])
 samples=np.array([[Teffinitial,logfacinitial]])
-
 # Calculate the associated modified loglike
 loglikechain=np.empty([1])
 loglikechain[0]=log_prior(samples[0],thetashape) + log_like(x,y,yerr,samples[0])
@@ -107,23 +105,28 @@ def lnprob(theta, x, y, yerr):
     return lp + log_like(x,y,yerr,theta) #loglikechain[0]
 
 #Set the number of dimensions the MCMC algorithm will look for and the number of walkers
-ndim, nwalkers = 2, 100
+ndim, nwalkers = 2, 5
+#Conversion Matrix required for the MHSampler to run
+neg_lnprob = lambda *args: -lnprob(*args)
+#!!!!
+res = op.minimize(neg_lnprob, x0=[200,-20], args=(x, y, yerr))
+cov = res.hess_inv
 #identify the initial position for MCMC algorithm
 pos = [[Teffinitial,logfacinitial] + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
 #Set up the sampler function
 sampler = emcee.MHSampler(cov, dim = ndim, lnprobfn = lnprob, args=(x, y, yerr))
-
-
 # Clear and run the production chain.
-number_of_samples = 10000
+number_of_samples = 12500
 print("Running MCMC...")
 sampler.run_mcmc(pos[0], number_of_samples, rstate0=np.random.get_state())
 print("Done.")
 
+acceptfrac = sampler.acceptance_fraction
+print("Acceptance Fraction: " + str(acceptfrac))
+
 # Give a generic burning point and choose the sample points used and identify the final result
 burnin = 500
 samples = sampler.chain[burnin:,:].reshape((-1, 2))
-
 # Compute the quantiles.
 samples[:] #= np.exp(samples[:])
 T_mcmc, logfac_mcmc = list(map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]),
@@ -163,26 +166,12 @@ print("""MCMC result with calculated burn point:
 
 
 
+################################################################################
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ------------------------------------------------------------------------------
 dir_path = os.path.dirname(os.path.realpath(__file__)) + "\\emcee_model_graphs"
 os.makedirs(dir_path, exist_ok=True)
 
@@ -411,7 +400,7 @@ plt.plot(temp, color="#3513B6", lw=1)
 plt.xlabel('Chain number')
 plt.ylabel('Temperature [K]')
 plt.title('Check mixing',color= "#302B2B", fontweight="bold")
-plt.savefig(dir_path+"\\6B Check mixing, Temperature.png")
+plt.savefig(dir_path+"\\6B Check mixing, Temperature via mean.png")
 #plt.show()
 plt.close()
 
@@ -441,7 +430,7 @@ plt.plot(temp, color="#3513B6", lw=1)
 plt.xlabel('Chain number')
 plt.ylabel('log10(factor)')
 plt.title('Check mixing',color= "#302B2B", fontweight="bold")
-plt.savefig(dir_path+"\\7B Check mixing, log10(factor).png")
+plt.savefig(dir_path+"\\7B Check mixing, log10(factor) via mean.png")
 #plt.show()
 plt.close()
 
@@ -470,9 +459,15 @@ plt.xlabel('Temperature [K]')
 plt.ylabel('log10(factor)')
 plt.title('Check mixing',color= "#302B2B", fontweight="bold")
 plt.colorbar().ax.set_title("Chain Number")
-plt.savefig(dir_path+"\\8B Temperatur vs log10(factor) with burn point.png")
+plt.savefig(dir_path+"\\8B Temperature vs log10(factor) with burn point.png")
 plt.close()
+
+
+fig = corner.corner(samples, labels=["$Temperature$", "$\ln\,f$"])
+fig.savefig(dir_path+"\\Line-Triangle.png")
 
 #Record the latest MCMC calculation into .dat file
 T_mcmc_array = np.array(T_mcmc)
-ascii.write(T_mcmc_array, "results.dat", names= ("Temperature", "+", "-"), overwrite= True)
+logfac_mcmc_array = np.array(logfac_mcmc)
+ascii.write(T_mcmc_array, "results_temperature.dat", names= ("Temperature", "+", "-"), overwrite= True)
+ascii.write(logfac_mcmc_array, "results_logfactor.dat", names= ("Log Factor", "+", "-"), overwrite= True)

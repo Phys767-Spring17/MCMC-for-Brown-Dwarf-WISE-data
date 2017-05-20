@@ -10,12 +10,13 @@ import random
 import os
 
 # Get the data using the astropy ascii
-data = ascii.read("SED.dat", data_start=6)
+data = ascii.read(os.path.dirname(os.path.realpath(__file__))+"\\SED.dat", data_start=6)
 
 x = data[0][:]      # Wavelength column
 y = data[1][:]     # log10(flux)
 yerr = data[2][:]  # Error on log10(flux)
 
+#Constants
 h = 6.626e-34
 c = 3.0e+8
 k = 1.38e-23
@@ -24,103 +25,112 @@ Teffmin = 10.0 #effective temperature minimum
 Teffmax = 1000.0 #effective temperature maximum
 logfacmin = -100.0 #log factor minimum
 logfacmax = 0.0 #log factor maximum
+
 #theatshape is 2 X 2 array
 thetashape=np.array([[Teffmin,Teffmax],[logfacmin,logfacmax]])
 
 
-class MCMCSetup(object):
+#Model for the log of the Spectral Radiance
+def model(x, T,logfactor):
 
-    def __init__(self):
-        pass
+    #takes in the wavelength array approximate Temp and the log factor and returns and array of logflux
+    wav = x * 1.0e-6
+    flux = np.empty([len(wav)])
+    logflux = np.empty([len(wav)])
 
-    def model(self,x, T,logfactor):
-
-        #takes in the wavelength array approximate Temp and the log factor and returns and array of logflux
-        wav = x * 1.0e-6
-        flux = np.empty([len(wav)])
-        logflux = np.empty([len(wav)])
-
+    a = 2.0*h*c**2
+    b = h*c/(wav*k*T)
+    for i in range(len(wav)):
         a = 2.0*h*c**2
-        b = h*c/(wav*k*T)
-        for i in range(len(wav)):
-            a = 2.0*h*c**2
-            b = h*c/(wav[i]*k*T)
-            flux[i] = a/ ( (wav[i]**5) * (np.exp(b) - 1.0) )
-            logflux[i] = logfactor + np.log10(flux[i])
-        return logflux
+        b = h*c/(wav[i]*k*T)
+        flux[i] = a/ ( (wav[i]**5) * (np.exp(b) - 1.0) )
+        logflux[i] = logfactor + np.log10(flux[i])
+    return logflux
 
-    def log_like(self,x,logf,errlogf,theta):
-        residuals = logf - self.model(x,theta[0],theta[1])
-        loglike=0.0
-        for i in range(len(x)):
-            loglike = loglike - np.log(errlogf[i]) - 0.5*(residuals[i]/errlogf[i])**2
-        loglike = loglike - 0.5*len(x)*np.log(2.0*np.pi)
-        return loglike
 
-    def log_prior(self,theta,thetashape):
+#log of likelyhood function
+def log_like(x,logf,errlogf,theta):
+    residuals = logf - model(x,theta[0],theta[1])
+    loglike=0.0
+    for i in range(len(x)):
+        loglike = loglike - np.log(errlogf[i]) - 0.5*(residuals[i]/errlogf[i])**2
+    loglike = loglike - 0.5*len(x)*np.log(2.0*np.pi)
+    return loglike
 
-        logpriors=np.empty([len(theta)])
-        #logprior=0.0
+#log of the priors
+def log_prior(theta,thetashape):
 
-        # Prior for theta[0]: Teff~logU[Teffmin,Teffmax]
-        Teff = theta[0]
-        Teffmin = thetashape[0][0]
-        Teffmax = thetashape[0][1]
-        if Teffmin < Teff < Teffmax:
-            logpriors[0] = ( 1.0/(np.log(Teffmax) - np.log(Teffmin)) )/Teff
-        else:
-            logpriors[0] = -1.0e99 # -infinity
+    logpriors=np.empty([len(theta)])
+    #logprior=0.0
 
-        # Prior for theta[1]: logfac~U[logfacmin,logfacmax]
-        logfac = theta[1]
-        logfacmin = thetashape[1][0]
-        logfacmax = thetashape[1][1]
-        if logfacmin < logfac < logfacmax:
-            logpriors[1] = 1.0/(logfacmax - logfacmin)
-        else:
-            logpriors[1] = -1.0e99 # -infinity
+    # Prior for theta[0]: Teff~logU[Teffmin,Teffmax]
+    Teff = theta[0]
+    Teffmin = thetashape[0][0]
+    Teffmax = thetashape[0][1]
+    if Teffmin < Teff < Teffmax:
+        logpriors[0] = ( 1.0/(np.log(Teffmax) - np.log(Teffmin)) )/Teff
+    else:
+        logpriors[0] = -1.0e99 # -infinity
 
-        #logprior = np.sum(logpriors)
+    # Prior for theta[1]: logfac~U[logfacmin,logfacmax]
+    logfac = theta[1]
+    logfacmin = thetashape[1][0]
+    logfacmax = thetashape[1][1]
+    if logfacmin < logfac < logfacmax:
+        logpriors[1] = 1.0/(logfacmax - logfacmin)
+    else:
+        logpriors[1] = -1.0e99 # -infinity
 
-        return np.sum(logpriors)
+    #logprior = np.sum(logpriors)
 
-    def lnprob(self,theta, x, y, yerr):
-        lp = self.log_prior(theta,thetashape)
-
-        if not np.isfinite(lp):
-            return -np.inf
-
-        return lp + self.log_like(x,y,yerr,theta) #loglikechain[0]
-
-MCMC = MCMCSetup()
+    return np.sum(logpriors)
 
 # Initialize the MCMC from a random point drawn from the prior
 Teffinitial = np.exp( np.random.uniform(np.log(thetashape[0][0]),np.log(thetashape[0][1])) )
 logfacinitial=np.random.uniform(thetashape[1][0],thetashape[1][1])
-thetachain=np.array([[Teffinitial,logfacinitial]])
+samples=np.array([[Teffinitial,logfacinitial]])
+# Calculate the associated modified loglike
+loglikechain=np.empty([1])
+loglikechain[0]=log_prior(samples[0],thetashape) + log_like(x,y,yerr,samples[0])
+
+#log of the probability function
+def lnprob(theta, x, y, yerr):
+    lp = log_prior(theta,thetashape)
+
+    loglikechain=np.empty([1])
+    loglikechain[0]=log_prior(samples[0],thetashape) + log_like(x,y,yerr,samples[0])
+    if not np.isfinite(lp):
+        return -np.inf
+
+    return lp + log_like(x,y,yerr,theta) #loglikechain[0]
 
 #Set the number of dimensions the MCMC algorithm will look for and the number of walkers
 ndim, nwalkers = 2, 5
 #Conversion Matrix required for the MHSampler to run
-neg_lnprob = lambda *args: -MCMC.lnprob(*args)
+neg_lnprob = lambda *args: -lnprob(*args)
 #!!!!
 res = op.minimize(neg_lnprob, x0=[200,-20], args=(x, y, yerr))
 cov = res.hess_inv
 #identify the initial position for MCMC algorithm
 pos = [[Teffinitial,logfacinitial] + 1e-4*np.random.randn(ndim) for i in range(nwalkers)]
 #Set up the sampler function
-sampler = emcee.MHSampler(cov, dim = ndim, lnprobfn = MCMC.lnprob, args=(x, y, yerr))
+sampler = emcee.MHSampler(cov, dim = ndim, lnprobfn = lnprob, args=(x, y, yerr))
 # Clear and run the production chain.
 number_of_samples = 12500
-
-# Clear and run the production chain.
 print("Running MCMC...")
-sampler.run_mcmc(pos[0], 5000,rstate0=np.random.get_state())
+width = 30
+for i, result in enumerate(sampler.sample(pos[0], iterations=number_of_samples)):
+    n = int((width+1) * float(i) / number_of_samples)
+    sys.stdout.write("\r[{0}{1}]".format('|' * n, ' ' * (width - n)))
+sys.stdout.write("\n")
 print("Done.")
 
-# Make the triangle plot.
+acceptfrac = sampler.acceptance_fraction
+print("Acceptance Fraction: " + str(acceptfrac))
+
+# Give a generic burning point and choose the sample points used and identify the final result
 burnin = 500
-samples = sampler.chain[burnin:,:]#.reshape((-1, 2))
+samples = sampler.chain[burnin:,:].reshape((-1, 2))
 
 # Compute the quantiles.
 samples[:] #= np.exp(samples[:])
@@ -133,7 +143,7 @@ print("""MCMC result:
     Log Factor = {1[0]} +{1[1]} -{1[2]}
 """.format(T_mcmc, logfac_mcmc))
 
-
+# Calculate the bruning point and use it to calculate the final result once again
 loglikeburn=np.median(samples[:,1])
 j=-1
 while True:
@@ -159,11 +169,20 @@ print("""MCMC result with calculated burn point:
 
 
 
-################################################################################
 
 
 
 
+
+
+
+
+
+
+
+
+
+# ------------------------------------------------------------------------------
 dir_path = os.path.dirname(os.path.realpath(__file__)) + "\\emcee_model_graphs"
 os.makedirs(dir_path, exist_ok=True)
 
@@ -190,7 +209,7 @@ plt.tick_params(
     top= 'off')          # tick along the top edhe are off
 
 data_1 = plt.errorbar(x, y, yerr=yerr, fmt=".r",color="#C80013")
-line_1, = plt.plot(plotting_wavelength, MCMC.model(plotting_wavelength,samples[0][0],samples[0][1]), "--",color="#0A40AB", lw=1)
+line_1, = plt.plot(plotting_wavelength, model(plotting_wavelength,samples[0][0],samples[0][1]), "--",color="#0A40AB", lw=1)
 plt.ylabel('log10(fulx[erg s^-1 cm^-1 A^-1] )')
 plt.xlabel("wavelength [um]")
 plt.title('Initial Guess Result',color= "#302B2B", fontweight="bold")
@@ -218,7 +237,7 @@ plt.tick_params(
     top= 'off')          # tick along the top edhe are off
 
 data_2 = plt.errorbar(x, y, yerr=yerr,fmt='.',color="#C80013",ms="6")
-line_2, = plt.plot(plotting_wavelength, MCMC.model(plotting_wavelength,T_mcmc[0],logfac_mcmc[0]), "--",color="#0A40AB", lw=1)
+line_2, = plt.plot(plotting_wavelength, model(plotting_wavelength,T_mcmc[0],logfac_mcmc[0]), "--",color="#0A40AB", lw=1)
 plt.ylabel('log10(fulx[erg s^-1 cm^-1 A^-1] )')
 plt.xlabel("wavelength [um]")
 plt.title('MCMC Result',color= "#302B2B", fontweight="bold")
@@ -460,4 +479,6 @@ fig.savefig(dir_path+"\\Line-Triangle.png")
 
 #Record the latest MCMC calculation into .dat file
 T_mcmc_array = np.array(T_mcmc)
-ascii.write(T_mcmc_array, "results.dat", names= ("Temperature", "+", "-"), overwrite= True)
+logfac_mcmc_array = np.array(logfac_mcmc)
+ascii.write(T_mcmc_array, "results_temperature.dat", names= ("Temperature", "+", "-"), overwrite= True)
+ascii.write(logfac_mcmc_array, "results_logfactor.dat", names= ("Log Factor", "+", "-"), overwrite= True)

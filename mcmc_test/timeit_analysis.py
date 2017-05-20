@@ -9,7 +9,7 @@ from timeit import Timer
 
 
 def fun():
-    proc = subprocess.Popen(["python","mcmc_clone_emceee_class"], shell = True)
+    proc = subprocess.Popen(["python","mcmc_clone_emceee0"], shell = True)
     proc.terminate()
 
 def fun2():
@@ -36,13 +36,13 @@ for b in t2_list:
 # for x in t_list_B:
 #    print(x)
 print("----------------------------------------------------")
-print(np.average((t_list_B)),"MCMC w/ Class implementation")
+print(np.average((t_list_B)),"MCMC process bar included")
 print(" ")
 
 #for x in t2_list_B:
 #    print(x)
 print("----------------------------------------------------")
-print(np.average((t2_list_B)),"MCMC w/o Class implementation")
+print(np.average((t2_list_B)),"MCMC standard")
 print(" ")
 
 print("----------------------------------------------------")

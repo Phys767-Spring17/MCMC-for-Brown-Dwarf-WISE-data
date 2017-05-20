@@ -42,15 +42,16 @@ def planck(wav, T):
 X = np.linspace(0,50,1000,endpoint=True)
 
 # Temperatures of other Brown Dwarfs used for comparison
-MCMC_Temp = results[0][0]
+MCMC_Temp = results_temperature[0][0]
+
 T1, T1_name = 227, "WISE 1506+7027"
 T2, T2_name = 450, "WISE 0410+1502"
 T3, T3_name = 350, "WISE 1541−2250"
 
 # temperature and Brown Dwarf decriptions
 T1_description = T1_name + " (" + str(T1)+"K" + ")"
-T2_description = T1_name + " (" + str(T2)+"K" + ")"
-T3_description = T1_name + " (" + str(T3)+"K" + ")"
+T2_description = T2_name + " (" + str(T2)+"K" + ")"
+T3_description = T3_name + " (" + str(T3)+"K" + ")"
 MCMC_description = "WISE 0855-0714" + " (" + str(MCMC_Temp)+"K" + ")"
 
 # Ys used for plotting
